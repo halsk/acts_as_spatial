@@ -5,6 +5,7 @@ module Webmapps
     end 
     module ActMethods
       attr_accessor :geom_column
+      attr_accessor :srid
       def acts_as_spatial(options = {})
         # if the geom_column is passed in
         # then set the geom_column. Otherwise
@@ -13,6 +14,11 @@ module Webmapps
           self.geom_column = options[:geom]
         else
          self.geom_column = "the_geom"
+        end
+        if options.include? (:srid)
+          self.srid = options[:srid]
+        else
+          self.srid = "4326"
         end
         unless included_modules.include? InstanceMethods 
           extend ClassMethods 
@@ -82,7 +88,7 @@ module Webmapps
       # appends to the @sql_where array a 
       # condition of the query
       def prepare_sql(st_method, geometry)
-        @sql_where << ("#{st_method}(#{self.geom_column}, '#{geometry}')") unless geometry.blank?
+        @sql_where << ("#{st_method}(#{self.geom_column},  ST_SetSRID( #{geometry},#{self.srid} ))") unless geometry.blank?
       end
        
     end 
